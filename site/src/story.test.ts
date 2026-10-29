@@ -8,6 +8,40 @@ import { Message, init, update } from './main.ts'
 const initialModel = init(Option.getOrThrow(fromString('https://pleat.example/'))).model
 
 describe('site choices', () => {
+  test('editing one contrast swatch preserves its other channels and the other swatches', () => {
+    story(
+      update,
+      given(initialModel),
+      message(Message.PickedSwatch({ swatch: 'Accent' })),
+      message(Message.ChangedChannel({ channel: 'Chroma', value: 0.1 })),
+      Command.expectNone(),
+      model(model => {
+        expect(model.contrast.palette.accent).toEqual({
+          lightness: 69.6,
+          chroma: 0.1,
+          hue: 43.5,
+        })
+        expect(model.contrast.palette.onAccent).toEqual({
+          lightness: 0,
+          chroma: 0,
+          hue: 0,
+        })
+        expect(model.contrast.swatch).toBe('Accent')
+        expect(Option.isNone(model.contrast.preset)).toBe(true)
+      }),
+      message(Message.ClickedPalettePreset({ preset: 'Light' })),
+      model(model => {
+        expect(model.contrast.palette.accent).toEqual({
+          lightness: 52,
+          chroma: 0.155,
+          hue: 34,
+        })
+        expect(model.contrast.preset).toEqual(Option.some('Light'))
+        expect(model.contrast.swatch).toBe('Accent')
+      }),
+    )
+  })
+
   test('changing one recipe dimension preserves the other choices', () => {
     story(
       update,

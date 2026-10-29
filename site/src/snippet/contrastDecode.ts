@@ -14,7 +14,7 @@ const decodeBrandTheme = (input: unknown) =>
 //   Muted text is Lc 42; the target for other content text is
 //   Lc 60 (APCA)
 //     at ["color"]["muted"]
-const rejected = decodeBrandTheme({
+const _rejected = decodeBrandTheme({
   color: {
     surface: 'oklch(99% 0.005 85)',
     ink: 'oklch(24% 0.02 50)',

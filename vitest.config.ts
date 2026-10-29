@@ -12,7 +12,11 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'unit',
-          include: ['packages/*/test/**/*.test.ts', 'site/src/**/*.test.ts', 'site/test/**/*.test.ts'],
+          include: [
+            'packages/*/test/**/*.test.ts',
+            'site/src/**/*.test.ts',
+            'site/test/**/*.test.ts',
+          ],
           environment: 'node',
         },
       },

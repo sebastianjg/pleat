@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.repository == 'Manzanita-Research/pleat'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       CI: 'true'

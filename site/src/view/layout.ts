@@ -8,8 +8,8 @@ import { Message, type Model, type ThemeChoice } from '../message.ts'
 import {
   AppRoute,
   algebraRouter,
-  foldkitUiRouter,
   contrastRouter,
+  foldkitUiRouter,
   generativeRouter,
   gridRouter,
   guideRouter,

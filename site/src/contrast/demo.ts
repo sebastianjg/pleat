@@ -1,7 +1,8 @@
-import { Theme, Token } from '@pleat/core'
 import { Option, Schema } from 'effect'
 
-import { meetsContrast, pair, type Pair } from './check.ts'
+import { Theme, Token } from '@pleat/core'
+
+import { type Pair, meetsContrast, pair } from './check.ts'
 
 // MODEL
 

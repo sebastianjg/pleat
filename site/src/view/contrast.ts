@@ -1,10 +1,11 @@
-import { Recipe, Style, Theme, Var, When } from '@pleat/core'
-import { css } from '@pleat/foldkit'
 import { Cause, Effect, Exit, Option } from 'effect'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
+import { Recipe, Style, Theme, Var, When } from '@pleat/core'
+import { css } from '@pleat/foldkit'
+
 import { codeBlock } from '../code.ts'
-import { check, failures, type Pair, type Verdict, score } from '../contrast/check.ts'
+import { type Pair, type Verdict, check, failures, score } from '../contrast/check.ts'
 import {
   CHANNEL_KEY,
   CHANNEL_RANGE,
@@ -220,7 +221,7 @@ const preview = Style.make({
 })
 
 const previewTitle = Style.make({
-  fontFamily: font.serif,
+  fontFamily: font.sans,
   fontSize: text.xl,
   fontWeight: 600,
   lineHeight: 1.2,
@@ -682,16 +683,13 @@ const editorView = (model: Model, h: HtmlBuilder<Message>): Html => {
               ...css(swatchButton),
             ],
             [
-              h.span(
-                [
-                  h.AriaHidden(true),
-                  ...css(
-                    swatchDot,
-                    Var.bind(sampleBackground, oklchCss(palette[SWATCH_KEY[option]])),
-                  ),
-                ],
-                [],
-              ),
+              h.span([
+                h.AriaHidden(true),
+                ...css(
+                  swatchDot,
+                  Var.bind(sampleBackground, oklchCss(palette[SWATCH_KEY[option]])),
+                ),
+              ]),
               title,
             ],
           ),

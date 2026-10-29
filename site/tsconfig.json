@@ -5,5 +5,12 @@
     "types": ["vite/client", "node"],
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "test", "scripts", "vite.config.ts", "alchemy.run.ts", "github.run.ts"]
+  "include": [
+    "src",
+    "test",
+    "scripts",
+    "vite.config.ts",
+    "alchemy.run.ts",
+    "github.run.ts"
+  ]
 }

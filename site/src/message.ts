@@ -3,9 +3,9 @@ import { defineMessageUnion } from 'foldkit/message'
 import { UrlRequest } from 'foldkit/navigation'
 import { Url } from 'foldkit/url'
 
+import { Channel, ContrastDemo, PalettePreset, Swatch } from './contrast/demo.ts'
 import * as FoldkitUi from './demo/foldkitUi.ts'
 import { Brand, Density, Mode, Scope } from './demo/theming/scope.ts'
-import { Channel, ContrastDemo, PalettePreset, Swatch } from './contrast/demo.ts'
 import { AppRoute } from './route.ts'
 
 // MODEL

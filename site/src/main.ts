@@ -10,6 +10,14 @@ import { gridKey } from '@pleat/foldkit'
 import { Catalog, Remote } from '@pleat/store'
 
 import { brandPresetSource } from './brandPresets.ts'
+import {
+  CHANNEL_KEY,
+  type Oklch,
+  PRESETS,
+  type Palette,
+  SWATCH_KEY,
+  initialContrastDemo,
+} from './contrast/demo.ts'
 import * as FoldkitUi from './demo/foldkitUi.ts'
 import * as Lights from './demo/theming/shape.ts'
 import {
@@ -22,12 +30,11 @@ import {
   type Preset,
   StoreSource,
 } from './message.ts'
-import { CHANNEL_KEY, PRESETS, SWATCH_KEY, initialContrastDemo } from './contrast/demo.ts'
 import { presetSource } from './presets.ts'
 import { AppRoute, urlToAppRoute } from './route.ts'
 import { algebraView } from './view/algebra.ts'
-import { foldkitUiView } from './view/foldkitUi.ts'
 import { contrastView } from './view/contrast.ts'
+import { foldkitUiView } from './view/foldkitUi.ts'
 import { generativeView } from './view/generative.ts'
 import { gridView } from './view/grid.ts'
 import { guideView } from './view/guide.ts'
@@ -248,29 +255,30 @@ export const update = (model: Model, message: Message) =>
     }),
     GotFoldkitUiMessage: ({ message }) => foldFoldkitUi(model, message),
     PickedSwatch: ({ swatch }) => ({
-      model: modifyFields(model, { contrast: contrast => ({ ...contrast, swatch }) }),
+      model: modifyFields(model, { contrast: modifyFields({ swatch: () => swatch }) }),
     }),
     ChangedChannel: ({ channel, value }) => ({
       model: modifyFields(model, {
         contrast: contrast => {
           const key = SWATCH_KEY[contrast.swatch]
-          return {
-            ...contrast,
-            palette: {
-              ...contrast.palette,
-              [key]: { ...contrast.palette[key], [CHANNEL_KEY[channel]]: value },
-            },
-            preset: Option.none(),
+          const channelUpdate: Partial<Record<keyof Oklch, () => number>> = {
+            [CHANNEL_KEY[channel]]: () => value,
           }
+          const paletteUpdate: Partial<Record<keyof Palette, () => Oklch>> = {
+            [key]: () => modifyFields(contrast.palette[key], channelUpdate),
+          }
+          return modifyFields(contrast, {
+            palette: modifyFields(paletteUpdate),
+            preset: () => Option.none(),
+          })
         },
       }),
     }),
     ClickedPalettePreset: ({ preset }) => ({
       model: modifyFields(model, {
-        contrast: contrast => ({
-          ...contrast,
-          palette: PRESETS[preset],
-          preset: Option.some(preset),
+        contrast: modifyFields({
+          palette: () => PRESETS[preset],
+          preset: () => Option.some(preset),
         }),
       }),
     }),

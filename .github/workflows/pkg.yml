@@ -34,6 +34,7 @@ env:
 
 jobs:
   publish:
+    if: github.repository == 'Manzanita-Research/pleat'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || 'blacksmith-2vcpu-ubuntu-2404' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0

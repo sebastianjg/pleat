@@ -1,11 +1,12 @@
-import { Theme, type Token } from '@pleat/core'
 import { Option } from 'effect'
+
+import { Theme, type Token } from '@pleat/core'
 
 import {
   DEFAULT_METRIC,
   type Metric,
-  type UseCase,
   USE_CASE_LABEL,
+  type UseCase,
   toSrgb,
 } from './metric.ts'
 

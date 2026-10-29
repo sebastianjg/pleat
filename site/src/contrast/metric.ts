@@ -5,6 +5,7 @@ import {
   Lab,
   OKLCH,
   OKLab,
+  type PlainColorObject,
   XYZ_D50,
   XYZ_D65,
   contrastAPCA,
@@ -15,7 +16,6 @@ import {
   sRGB_Linear,
   to,
   toGamut,
-  type PlainColorObject,
 } from 'colorjs.io/fn'
 import { Option, Schema } from 'effect'
 

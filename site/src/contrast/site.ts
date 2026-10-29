@@ -1,6 +1,6 @@
 import type { Theme } from '@pleat/core'
 
-import { indigoNight, linen, tokens } from '../design.ts'
+import { night, paper, tokens } from '../design.ts'
 import { type Pair, pair } from './check.ts'
 
 const { color } = tokens
@@ -22,10 +22,10 @@ export const SITE_PAIRS: ReadonlyArray<Pair> = [
   pair('Accent on sunken', color.accent, color.sunken, 'ContentText'),
   pair('On-accent on accent', color.onAccent, color.accent, 'ContentText'),
   pair('Ink on accent soft', color.ink, color.accentSoft, 'BodyText'),
-  pair('Green on sunken', color.green, color.sunken, 'ContentText'),
-  pair('Indigo on sunken', color.indigo, color.sunken, 'ContentText'),
-  pair('Indigo on canvas', color.indigo, color.canvas, 'ContentText'),
-  pair('Green on surface', color.green, color.surface, 'ContentText'),
+  pair('Teal on sunken', color.teal, color.sunken, 'ContentText'),
+  pair('Madder on sunken', color.madder, color.sunken, 'ContentText'),
+  pair('Madder on canvas', color.madder, color.canvas, 'ContentText'),
+  pair('Teal on surface', color.teal, color.surface, 'ContentText'),
   pair('Canvas on ink', color.canvas, color.ink, 'ContentText'),
   pair('Line on canvas', color.line, color.canvas, 'Decoration'),
   pair('Line on surface', color.line, color.surface, 'Decoration'),
@@ -33,6 +33,6 @@ export const SITE_PAIRS: ReadonlyArray<Pair> = [
 
 /** The site's themes, by the name the theme switch shows. */
 export const SITE_THEMES: ReadonlyArray<readonly [name: string, theme: Theme.Theme]> = [
-  ['Light', linen],
-  ['Dark', indigoNight],
+  ['Light', paper],
+  ['Dark', night],
 ]

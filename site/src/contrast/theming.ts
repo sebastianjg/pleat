@@ -1,7 +1,7 @@
 import type { Theme } from '@pleat/core'
 
-import { contrastPairs, semantic } from '../demo/theming/tokens.ts'
 import { dark, harbor, highContrast, light, orchard } from '../demo/theming/themes.ts'
+import { contrastPairs, semantic } from '../demo/theming/tokens.ts'
 import { type Pair, pair } from './check.ts'
 import type { UseCase } from './metric.ts'
 
