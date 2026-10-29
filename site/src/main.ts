@@ -1,18 +1,31 @@
 import { Effect, Option, Schema } from 'effect'
-import { Command, type Runtime, Update } from 'foldkit'
+import { Command, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, HtmlBuilder } from 'foldkit/html'
 import { UrlRequest, load, pushUrl } from 'foldkit/navigation'
 import { modifyFields } from 'foldkit/struct'
+import { persistentEntry } from 'foldkit/subscription'
 import { toString as urlToString } from 'foldkit/url'
+
+import { gridKey } from '@pleat/foldkit'
 
 import { brandPresetSource } from './brandPresets.ts'
 import * as FoldkitUi from './demo/foldkitUi.ts'
-import { type BrandPreset, Message, Model, type Preset } from './message.ts'
+import * as Lights from './demo/theming/shape.ts'
+import {
+  type BrandPreset,
+  type Light,
+  type LightColor,
+  type LightPreset,
+  Message,
+  Model,
+  type Preset,
+} from './message.ts'
 import { presetSource } from './presets.ts'
 import { AppRoute, urlToAppRoute } from './route.ts'
 import { algebraView } from './view/algebra.ts'
 import { foldkitUiView } from './view/foldkitUi.ts'
 import { generativeView } from './view/generative.ts'
+import { gridView } from './view/grid.ts'
 import { guideView } from './view/guide.ts'
 import { homeView } from './view/home.ts'
 import { layoutView } from './view/layout.ts'
@@ -27,6 +40,16 @@ export { Message, Model }
 const INITIAL_PRESET: Preset = 'Valid'
 const INITIAL_BRAND_PRESET: BrandPreset = 'Valid'
 
+const lightPreset = (preset: LightPreset): Light =>
+  preset === 'Paper' ? Lights.paper : Lights.night
+
+const LIGHT_FIELDS: Readonly<Record<LightColor, 'ground' | 'ink' | 'dye' | 'glow'>> = {
+  Ground: 'ground',
+  Ink: 'ink',
+  Dye: 'dye',
+  Glow: 'glow',
+}
+
 export const init: Runtime.RoutingApplicationInit<Model, Message> = url => ({
   model: {
     route: urlToAppRoute(url),
@@ -39,7 +62,10 @@ export const init: Runtime.RoutingApplicationInit<Model, Message> = url => ({
       scope: { mode: 'Light', brand: 'Harbor', density: 'Comfortable' },
       brandPreset: Option.some(INITIAL_BRAND_PRESET),
       brandSource: brandPresetSource(INITIAL_BRAND_PRESET),
+      light: lightPreset('Paper'),
+      lightPreset: Option.some<LightPreset>('Paper'),
     },
+    isGridShown: false,
     foldkitUi: FoldkitUi.init(),
   },
 })
@@ -159,8 +185,52 @@ export const update = (model: Model, message: Message) =>
         }),
       }),
     }),
+    UpdatedLightColor: ({ color, value }) => ({
+      model: modifyFields(model, {
+        theming: modifyFields({
+          light: light => ({ ...light, [LIGHT_FIELDS[color]]: value }),
+          lightPreset: () => Option.none(),
+        }),
+      }),
+    }),
+    UpdatedToneLightness: ({ lightness }) => ({
+      model: modifyFields(model, {
+        theming: modifyFields({
+          light: modifyFields({ tone: modifyFields({ lightness: () => lightness }) }),
+          lightPreset: () => Option.none(),
+        }),
+      }),
+    }),
+    UpdatedToneChroma: ({ chroma }) => ({
+      model: modifyFields(model, {
+        theming: modifyFields({
+          light: modifyFields({ tone: modifyFields({ chroma: () => chroma }) }),
+          lightPreset: () => Option.none(),
+        }),
+      }),
+    }),
+    ClickedLightPreset: ({ preset }) => ({
+      model: modifyFields(model, {
+        theming: modifyFields({
+          light: () => lightPreset(preset),
+          lightPreset: () => Option.some(preset),
+        }),
+      }),
+    }),
+    PressedGridKey: () => ({
+      model: modifyFields(model, { isGridShown: isGridShown => !isGridShown }),
+    }),
+    ClickedGridToggle: () => ({
+      model: modifyFields(model, { isGridShown: isGridShown => !isGridShown }),
+    }),
     GotFoldkitUiMessage: ({ message }) => foldFoldkitUi(model, message),
   })
+
+// SUBSCRIPTIONS
+
+export const subscriptions = Subscription.make<Model, Message>()(() => ({
+  gridKey: persistentEntry(gridKey(Message.PressedGridKey())),
+}))
 
 // VIEW
 
@@ -173,6 +243,7 @@ const routeTitle = (route: AppRoute): string =>
     Algebra: () => `The algebra | ${TITLE_SUFFIX}`,
     Generative: () => `Generative interfaces | ${TITLE_SUFFIX}`,
     Theming: () => `Theming | ${TITLE_SUFFIX}`,
+    Grid: () => `The grid | ${TITLE_SUFFIX}`,
     FoldkitUi: () => `Foldkit UI | ${TITLE_SUFFIX}`,
     Reference: () => `Reference | ${TITLE_SUFFIX}`,
     NotFound: () => `Not found | ${TITLE_SUFFIX}`,
@@ -189,6 +260,7 @@ export const view = (model: Model, h: HtmlBuilder<Message>): Document => ({
       Algebra: () => algebraView(h),
       Generative: () => generativeView(model, h),
       Theming: () => themingView(model, h),
+      Grid: () => gridView(model, h),
       FoldkitUi: () =>
         h.submodel({
           slotId: 'foldkit-ui',

@@ -1,10 +1,16 @@
-import { type Declarations, renderBody } from './declarations.ts'
+import {
+  type Declarations,
+  type FontFaceDescriptors,
+  renderBody,
+} from './declarations.ts'
 import { digest } from './hash.ts'
 import { registerGlobal } from './sheet.ts'
 import * as Theme from './theme.ts'
 import * as When from './when.ts'
 
-const SELECTOR = /^[^{};<>]+$/
+// NOTE: `{`, `}` and `;` could end the rule and `<` could end a <style> element; `>` is the
+// child combinator.
+const SELECTOR = /^[^{};<]+$/
 
 const assertSelector = (selector: string): void => {
   if (!SELECTOR.test(selector) || selector.trim() === '') {
@@ -77,9 +83,18 @@ export const theme = (
   registerGlobal({ id, layer: 'themes', rule: text })
 }
 
-/** Adds an `@font-face` rule. */
-export const fontFace = (declarations: Declarations): void => {
-  const text = `@font-face{${renderBody(declarations)}}`
+/** Adds an `@font-face` rule.
+ *
+ *  ```ts
+ *  Global.fontFace({
+ *    fontFamily: 'Terminal Grotesque',
+ *    src: 'url("/fonts/TerminalGrotesque.woff2") format("woff2")',
+ *    fontDisplay: 'swap',
+ *  })
+ *  ``` */
+export const fontFace = (descriptors: FontFaceDescriptors): void => {
+  // Descriptors are written exactly as declarations are, and validated the same way.
+  const text = `@font-face{${renderBody(descriptors as Declarations)}}`
   registerGlobal({ id: `font:${digest(text)}`, layer: 'globals', rule: text })
 }
 

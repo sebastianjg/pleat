@@ -30,7 +30,7 @@ const postView = (post: Post, h: HtmlBuilder<Message>): Html =>
 
 | Package                              | What it is                                                                                                                                                                                      |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@pleat/core`](packages/core)       | The algebra: `Style`, `When`, `Recipe`, `Var`, `Token`, `Theme`, `Global`, `Sheet`, `Calc`, `Color`. Depends only on Effect.                                                                    |
+| [`@pleat/core`](packages/core)       | The algebra: `Style`, `When`, `Recipe`, `Var`, `Token`, `Theme`, `Shape`, `Grid`, `Global`, `Sheet`, `Calc`, `Color`, `Paint`. Depends only on Effect.                                          |
 | [`@pleat/foldkit`](packages/foldkit) | `css()` for Foldkit views, `cssClass()` for `@foldkit/ui` parts that take class names, and a `renderDocument` that puts each page's CSS in its head for server rendering and static generation. |
 
 ## What you get
@@ -71,6 +71,74 @@ h.section([...css(card, ...Theme.bindings(customerBrand))], children)
 ```
 
 The full page, [`site/src/view/theming.ts`](site/src/view/theming.ts), renders the same card from tokens and from hardcoded values side by side, nests scopes three deep, and decodes brands you type. Run `pnpm site:dev` and open `/theming`.
+
+### Shapes
+
+A theme holds values. A `Shape` holds the operations that make them, and the values are provided later, the way an Effect `Layer` gets what it needs through `Layer.provide`. One shape takes many palettes, and `Shape.build` only accepts a shape that needs nothing more, so a missing palette is a type error. `Paint` does the color arithmetic in JavaScript (sRGB, OKLab, OKLCH, APCA contrast), so a built theme holds hex values that an editor theme or a contrast check can read as well as a browser.
+
+```ts
+// What a palette provides, and what components read.
+const light = Token.make(
+  { ground: Token.color, ink: Token.color, dye: Token.color },
+  { prefix: 'light-' },
+)
+const role = Token.make({
+  ground: Token.color,
+  ink: Token.color,
+  rule: Token.color,
+  muted: Token.color,
+  dye: Token.color,
+  onDye: Token.color,
+})
+
+// The shape: operations, no colors yet.
+const look = Shape.make(role, light, ({ ground, ink, dye }) => ({
+  ground,
+  ink,
+  rule: Paint.over(ink, ground, 20), // ink at 20% over the ground
+  muted: Paint.fade(ink, ground, 60), // ink faded until it reads at APCA Lc 60
+  dye,
+  onDye: Paint.mostLegible(dye, [ground, ink]),
+}))
+
+// Provide a palette, and build.
+const paper = Shape.succeed(light, { ground: '#f9f5eb', ink: '#553364', dye: '#86469c' })
+Global.theme(Shape.build(look.pipe(Shape.provide(paper))))
+```
+
+`Shape.provide` keeps the provided values to itself, and `Shape.provideMerge` declares both. A shape that reads and writes the same tree is a transformation, such as a density or a brand that turns a hue. `Shape.decode` checks a palette from outside the program before anything is derived from it. The `/theming` page has an editor for this example.
+
+## The grid
+
+`Grid` is a unit grid as a value, after Karl Gerstner's grid for _Capital_: 58 square units with 2-unit gutters, which divide into 2, 3, 4, 5, or 6 equal columns with nothing left over, and a 28-unit half for phones. A frame fits it to the window with a whole-pixel unit, `floor(width / (units + 2 × margin))`, and splits the remainder between the sides: 24px at 1440, 28px at 1728, 32px at 1920, 13px on a 393px phone. Placements return ordinary styles, and only the grid's exact splits type-check.
+
+```ts
+const grid = Grid.gerstner
+const frame = Grid.frame(grid, { fit: 'Container', margin: 1 })
+
+const log = Grid.column(grid, { of: 3, at: 1, rows: 8 }) // units 1 to 18
+const sheet = Grid.column(grid, { of: 3, at: 2, span: 2, rows: 8 }) // units 21 to 58
+const type = Grid.type(grid, {
+  Mono: { size: 0.5, leading: 0.75 },
+  Read: { size: 5 / 6, leading: 1.25 },
+})
+
+h.div(
+  [...css(frame.host)],
+  [
+    h.div(
+      [...css(frame.field)],
+      [
+        gridOverlay(grid, h, { isShown: model.isGridShown }),
+        h.section([...css(log)], [h.p([...css(type({ role: 'Mono' }))], ['…'])]),
+        h.section([...css(sheet)], ['…']),
+      ],
+    ),
+  ],
+)
+```
+
+The unit is a registered custom property, computed once on the field, so every block inherits the same whole number. `Grid.fit` and `Grid.resolve` compute the same geometry in TypeScript, and a Chromium test checks that they agree with the browser for every block at a dozen widths. A `Fixed` frame takes its size from a token if you like, so a theme layer can set the density. On the half, a block fills the width unless its `half` option places it. `gridOverlay` and `gridKey` in `@pleat/foldkit` draw the numbered ruler, unit lines, and baselines, and toggle them with the G key. Run `pnpm site:dev` and open `/grid`.
 
 ## Foldkit UI
 
