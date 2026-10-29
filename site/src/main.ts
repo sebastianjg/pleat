@@ -1,24 +1,26 @@
-import { Effect, Option, Schema } from 'effect'
+import { Effect, Option, Schema, Stream } from 'effect'
 import { Command, type Runtime, Subscription, Update } from 'foldkit'
 import type { Document, HtmlBuilder } from 'foldkit/html'
 import { UrlRequest, load, pushUrl } from 'foldkit/navigation'
 import { modifyFields } from 'foldkit/struct'
 import { persistentEntry } from 'foldkit/subscription'
-import { toString as urlToString } from 'foldkit/url'
+import { type Url, toString as urlToString } from 'foldkit/url'
 
 import { gridKey } from '@pleat/foldkit'
+import { Catalog, Remote } from '@pleat/store'
 
 import { brandPresetSource } from './brandPresets.ts'
 import * as FoldkitUi from './demo/foldkitUi.ts'
 import * as Lights from './demo/theming/shape.ts'
 import {
   type BrandPreset,
-  type Light,
+  Light,
   type LightColor,
   type LightPreset,
   Message,
   Model,
   type Preset,
+  StoreSource,
 } from './message.ts'
 import { presetSource } from './presets.ts'
 import { AppRoute, urlToAppRoute } from './route.ts'
@@ -50,6 +52,15 @@ const LIGHT_FIELDS: Readonly<Record<LightColor, 'ground' | 'ink' | 'dye' | 'glow
   Glow: 'glow',
 }
 
+const storeSource = (url: Url): Option.Option<StoreSource> =>
+  Option.flatMap(url.search, search => {
+    const params = new URLSearchParams(search)
+    return Option.map(Option.fromNullishOr(params.get('store')), store => ({
+      url: store,
+      theme: params.get('theme') ?? 'demo-paper',
+    }))
+  })
+
 export const init: Runtime.RoutingApplicationInit<Model, Message> = url => ({
   model: {
     route: urlToAppRoute(url),
@@ -64,6 +75,7 @@ export const init: Runtime.RoutingApplicationInit<Model, Message> = url => ({
       brandSource: brandPresetSource(INITIAL_BRAND_PRESET),
       light: lightPreset('Paper'),
       lightPreset: Option.some<LightPreset>('Paper'),
+      store: storeSource(url),
     },
     isGridShown: false,
     foldkitUi: FoldkitUi.init(),
@@ -223,13 +235,46 @@ export const update = (model: Model, message: Message) =>
     ClickedGridToggle: () => ({
       model: modifyFields(model, { isGridShown: isGridShown => !isGridShown }),
     }),
+    ReceivedStoreLight: ({ light }) => ({
+      model: modifyFields(model, {
+        theming: modifyFields({
+          light: () => light,
+          lightPreset: () => Option.none(),
+        }),
+      }),
+    }),
     GotFoldkitUiMessage: ({ message }) => foldFoldkitUi(model, message),
   })
 
 // SUBSCRIPTIONS
 
-export const subscriptions = Subscription.make<Model, Message>()(() => ({
+// NOTE: the store's values are decoded against the light's tokens by
+// Remote, and against the Model's schema here, before they reach the Model.
+const lightEntry = Catalog.theme(Lights.light, { shape: Lights.look })
+const decodeLight = Schema.decodeUnknownOption(Light)
+
+export const subscriptions = Subscription.make<Model, Message>()(entry => ({
   gridKey: persistentEntry(gridKey(Message.PressedGridKey())),
+  storeLight: entry(
+    { store: Schema.Option(StoreSource) },
+    {
+      modelToDependencies: model => ({ store: model.theming.store }),
+      dependenciesToStream: ({ store }) =>
+        Option.match(store, {
+          onNone: () => Stream.empty,
+          onSome: source =>
+            Remote.updates(Remote.make(source.url, source.theme, lightEntry)).pipe(
+              Stream.map(({ version }) =>
+                Option.map(decodeLight(version.values), light =>
+                  Message.ReceivedStoreLight({ light, version: version.version }),
+                ),
+              ),
+              Stream.filter(Option.isSome),
+              Stream.map(message => message.value),
+            ),
+        }),
+    },
+  ),
 }))
 
 // VIEW

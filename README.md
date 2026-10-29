@@ -31,6 +31,7 @@ const postView = (post: Post, h: HtmlBuilder<Message>): Html =>
 | Package                              | What it is                                                                                                                                                                                      |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`@pleat/core`](packages/core)       | The algebra: `Style`, `When`, `Recipe`, `Var`, `Token`, `Theme`, `Shape`, `Grid`, `Global`, `Sheet`, `Calc`, `Color`, `Paint`. Depends only on Effect.                                          |
+| [`@pleat/store`](packages/store)     | A theme store on a Cloudflare Durable Object, and `Remote`, which keeps pages in step with it, live, with a version pinned for offline.                                                         |
 | [`@pleat/foldkit`](packages/foldkit) | `css()` for Foldkit views, `cssClass()` for `@foldkit/ui` parts that take class names, and a `renderDocument` that puts each page's CSS in its head for server rendering and static generation. |
 
 ## What you get
@@ -139,6 +140,7 @@ h.div(
 ```
 
 The unit is a registered custom property, computed once on the field, so every block inherits the same whole number. `Grid.fit` and `Grid.resolve` compute the same geometry in TypeScript, and a Chromium test checks that they agree with the browser for every block at a dozen widths. A `Fixed` frame takes its size from a token if you like, so a theme layer can set the density. On the half, a block fills the width unless its `half` option places it. `gridOverlay` and `gridKey` in `@pleat/foldkit` draw the numbered ruler, unit lines, and baselines, and toggle them with the G key. Run `pnpm site:dev` and open `/grid`.
+[`@pleat/store`](packages/store) serves themes like this from a Durable Object: publish four colors and a tone, and every page that reads the theme gets the whole derived theme, live.
 
 ## Foldkit UI
 
