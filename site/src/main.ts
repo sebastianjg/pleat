@@ -22,10 +22,12 @@ import {
   type Preset,
   StoreSource,
 } from './message.ts'
+import { CHANNEL_KEY, PRESETS, SWATCH_KEY, initialContrastDemo } from './contrast/demo.ts'
 import { presetSource } from './presets.ts'
 import { AppRoute, urlToAppRoute } from './route.ts'
 import { algebraView } from './view/algebra.ts'
 import { foldkitUiView } from './view/foldkitUi.ts'
+import { contrastView } from './view/contrast.ts'
 import { generativeView } from './view/generative.ts'
 import { gridView } from './view/grid.ts'
 import { guideView } from './view/guide.ts'
@@ -79,6 +81,7 @@ export const init: Runtime.RoutingApplicationInit<Model, Message> = url => ({
     },
     isGridShown: false,
     foldkitUi: FoldkitUi.init(),
+    contrast: initialContrastDemo,
   },
 })
 
@@ -244,6 +247,33 @@ export const update = (model: Model, message: Message) =>
       }),
     }),
     GotFoldkitUiMessage: ({ message }) => foldFoldkitUi(model, message),
+    PickedSwatch: ({ swatch }) => ({
+      model: modifyFields(model, { contrast: contrast => ({ ...contrast, swatch }) }),
+    }),
+    ChangedChannel: ({ channel, value }) => ({
+      model: modifyFields(model, {
+        contrast: contrast => {
+          const key = SWATCH_KEY[contrast.swatch]
+          return {
+            ...contrast,
+            palette: {
+              ...contrast.palette,
+              [key]: { ...contrast.palette[key], [CHANNEL_KEY[channel]]: value },
+            },
+            preset: Option.none(),
+          }
+        },
+      }),
+    }),
+    ClickedPalettePreset: ({ preset }) => ({
+      model: modifyFields(model, {
+        contrast: contrast => ({
+          ...contrast,
+          palette: PRESETS[preset],
+          preset: Option.some(preset),
+        }),
+      }),
+    }),
   })
 
 // SUBSCRIPTIONS
@@ -290,6 +320,7 @@ const routeTitle = (route: AppRoute): string =>
     Theming: () => `Theming | ${TITLE_SUFFIX}`,
     Grid: () => `The grid | ${TITLE_SUFFIX}`,
     FoldkitUi: () => `Foldkit UI | ${TITLE_SUFFIX}`,
+    Contrast: () => `Contrast | ${TITLE_SUFFIX}`,
     Reference: () => `Reference | ${TITLE_SUFFIX}`,
     NotFound: () => `Not found | ${TITLE_SUFFIX}`,
   })
@@ -313,6 +344,7 @@ export const view = (model: Model, h: HtmlBuilder<Message>): Document => ({
           view: foldkitUiView,
           toParentMessage: message => Message.GotFoldkitUiMessage({ message }),
         }),
+      Contrast: () => contrastView(model, h),
       Reference: () => referenceView(h),
       NotFound: () => notFoundView(h),
     }),

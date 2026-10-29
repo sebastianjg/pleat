@@ -21,6 +21,7 @@
     "@pleat/core": "workspace:^",
     "@pleat/foldkit": "workspace:^",
     "@pleat/store": "workspace:^",
+    "colorjs.io": "0.7.1",
     "effect": "4.0.0",
     "foldkit": "0.167.0"
   },

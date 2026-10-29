@@ -14,7 +14,7 @@ Pleat is a styling library for Foldkit and Effect v4. Read `README.md` first, th
 - `packages/core`: the algebra. Depends only on `effect` (peer) and `csstype` (types).
 - `packages/foldkit`: the Foldkit adapter. `src/server.ts` is a separate entry so server code stays out of client bundles.
 - `packages/store`: the theme store. `src/index.ts` (catalog, versions, routes, client) depends on `@pleat/core` and Effect; `src/cloudflare.ts`, the Worker and Durable Object, also on Alchemy, an optional peer. `demo/` runs it locally with `alchemy dev`.
-- `site`: the docs site, a Foldkit SSG app styled only with Pleat. Snippets shown on the site live in `site/src/snippet` and are typechecked; import them with `?raw`.
+- `site`: the docs site, a Foldkit SSG app styled only with Pleat. Snippets shown on the site live in `site/src/snippet` and are typechecked; import them with `?raw`. `site/test` holds contrast checks.
 - `site/alchemy.run.ts`: the Alchemy stack that deploys the docs with `Cloudflare.Website.Foldkit`. Deployment dependencies are devDependencies of `site`, sharing its Effect version and the root lockfile.
 - `test/browser`: a private workspace for the Chromium test that the compiled cascade matches `Style.resolve`.
 - `bench`: a private workspace for the render benchmark and its comparison dependencies. Update `bench/RESULTS.md` when the numbers move.
